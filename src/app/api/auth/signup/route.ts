@@ -40,5 +40,6 @@ export async function POST(request: Request) {
       password: hashedPassword,
     },
   });
-  return NextResponse.json({ message: "User created successfully", user });
+  const { password: _, ...userDetails } = user;
+  return NextResponse.json({ message: "User created successfully", user: userDetails });
 }
