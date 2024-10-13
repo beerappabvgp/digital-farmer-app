@@ -1,38 +1,93 @@
-import { generateAccessToken, verifyToken } from "@/app/utils/jwt";
-import { PrismaClient } from "@prisma/client";
-import { access } from "fs";
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextRequest, NextResponse } from "next/server";
+import cookie from "cookie";
+import { generateAccessToken, generateRefreshToken, verifyToken } from "@/app/utils/jwt";
+import { Prisma, PrismaClient } from "@prisma/client";
+
+
 const prisma = new PrismaClient();
-
-const refreshTokenSchema = z.string();
-
-export async function POST(request: Request) {
-    let { refreshToken } = await request.json();
-    const parsed = refreshTokenSchema.safeParse(refreshToken);
-    if (!parsed.success) {
-        return NextResponse.json({
-            error: parsed.error.errors,
-        }, {
-            status: 400,
-        });
-    }
-    const tokenInDb = await prisma.refreshToken.findUnique({
-        where: {
-            token: refreshToken,
+export async function POST(request: NextRequest) {
+    try {
+        const cookies = request.headers.get('cookie');
+        if (!cookies) {
+            return NextResponse.json({
+                message: "Unauthorized",
+            }, {
+                status: 401,
+            });
         }
-    });
-    if (!tokenInDb) {
+        const { refreshToken } = cookie.parse(cookies);
+        if (!refreshToken) {
+            return NextResponse.json({
+                message: "Unauthorized",
+            }, {
+                status: 401,
+            });
+        }
+        // verify the refresh token 
+        const decodedToken = await verifyToken(refreshToken);
+        const userId = decodedToken.userId;
+        // checking if the refresh token matches with the one in the database 
+        const storedRefreshToken = await prisma.refreshToken.findUnique({
+            where: { token: refreshToken },
+            include: { user: true }
+        });
+        console.log(storedRefreshToken);
+        if (!storedRefreshToken || storedRefreshToken.userId !== userId) {
+            return NextResponse.json({message: "Invalid refresh token or user"}, { status: 401 })
+        }
+        // checking if the refresh token has expired 
+        if (new Date() > storedRefreshToken.expiresAt) {
+            await prisma.refreshToken.delete({
+                where: {
+                    token: refreshToken,
+                }
+            });
+            return NextResponse.json({
+                message: "refresh token has expired",
+            }, {
+                status: 401,
+            });
+        }
+        const newAccessToken = await generateAccessToken(userId);
+        const newRefreshToken = await generateRefreshToken(userId);
+        const expirationDate = new Date();
+        expirationDate.setDate(expirationDate.getDate() + 7);
+        await prisma.refreshToken.update({
+            where: {
+                token: refreshToken,
+            },
+            data: {
+                token: newRefreshToken,
+                expiresAt: expirationDate,
+            }
+        });
+        // setting new access tokens and refresh tokens in response cookies 
+        const accessCookie = cookie.serialize('accessToken', newAccessToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 1 * 60,
+            path: '/',
+        });
+
+        const refreshCookie = cookie.serialize('refreshToken', newRefreshToken, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60,
+            path: '/',
+        });
+        const response = NextResponse.json({ message: "Tokens refreshed successfully" }, { status: 200 });
+        response.headers.append('Set-Cookie', accessCookie);
+        response.headers.append('Set-Cookie', refreshCookie);
+        return response;
+
+    } catch (error) {
+        console.error(error);
         return NextResponse.json({
-            error: "Invalid refresh Token",
-        }, { status: 401 });
-    }
-    refreshToken = parsed.data;
-    const decodedToken = verifyToken(refreshToken);
-    if (typeof decodedToken !== 'string' && 'userId' in decodedToken) {
-        const newAccessToken = generateAccessToken(decodedToken.userId)
-        return NextResponse.json({ accessToken: newAccessToken });
-    } else {
-        return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 });
+            message: "Internal server error"
+        }, {
+            status: 500,
+        })
     }
 }

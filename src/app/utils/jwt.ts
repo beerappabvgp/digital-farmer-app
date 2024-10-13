@@ -1,15 +1,31 @@
-import jwt from "jsonwebtoken";
+import { jwtVerify, SignJWT } from 'jose';
 
-const secret = process.env.JWT_SECRET!;
+// Secret as Uint8Array (jose requires this format)
+const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
 
-export const generateAccessToken = (userId: string) => {
-    return jwt.sign({ userId }, secret, { expiresIn: '15m' });
-}
+// Function to generate access token
+export const generateAccessToken = async (userId: string) => {
+    return new SignJWT({ userId })
+        .setProtectedHeader({ alg: 'HS256' }) // Specify HS256 algorithm
+        .setExpirationTime('15m')              // Set expiration time
+        .sign(secretKey);                      // Sign the JWT
+};
 
-export const generateRefreshToken = (userId: string) => {
-    return jwt.sign({ userId } , secret, { expiresIn: '7d'});
-}
+// Function to generate refresh token
+export const generateRefreshToken = async (userId: string) => {
+    return new SignJWT({ userId })
+        .setProtectedHeader({ alg: 'HS256' }) // Specify HS256 algorithm
+        .setExpirationTime('7d')              // Set expiration time
+        .sign(secretKey);                      // Sign the JWT
+};
 
-export const verifyToken = (token: string) => {
-    return jwt.verify(token, secret);
-}
+// Function to verify the token
+export const verifyToken = async (token: string) => {
+    try {
+        const { payload } = await jwtVerify(token, secretKey); // Verify the JWT
+        return payload; // Return the decoded payload
+    } catch (error) {
+        console.error(error);
+        throw new Error("TokenVerificationError");
+    }
+};

@@ -1,25 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateAccessToken, verifyToken } from "./app/utils/jwt";
+import { verifyToken } from '@/app/utils/jwt';
+import cookie from "cookie";
 
 export async function middleware(request: NextRequest) {
-    // we need to validate the token right so first we need to read token from headers
-    const token = request.headers.get('Authorization')?.split(' ')[1];
-    // Authorization middleware
-    if (!token) {
-        return NextResponse.redirect(new URL(`/auth/signin`, request.url));
-    }
     try {
-        const decodedToken = verifyToken(token);
-        if (typeof decodedToken !== 'string' && 'userId' in decodedToken) {
-            return NextResponse.next();
-        } else {
-            return NextResponse.json({ error: 'Invalid refresh token' }, { status: 401 });
+        // Parse cookies from the request
+        const cookies = request.headers.get('cookie');
+        if (!cookies) {
+            return NextResponse.json({ error: "Authentication required" }, { status: 401 });
         }
+
+        const { accessToken } = cookie.parse(cookies);
+        if (!accessToken) {
+            return NextResponse.json({ error: "Missing access token" }, { status: 401 });
+        }
+
+        const decodedToken = await verifyToken(accessToken);
+        if (!decodedToken) {
+            return NextResponse.json({ error: "Invalid or expired access token" }, { status: 401 });
+        }
+
+        // Attach user ID to the headers so that downstream code can use it
+        request.headers.set("userId", decodedToken.userId as string);
+
+        return NextResponse.next();
     } catch (error) {
-        return NextResponse.redirect(new URL('/auth/signin', request.url));
+        console.error("Authentication error:", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*']
-}
+    matcher: ['/dashboard/:path*', '/api/auth/logout'], // Apply middleware to these routes
+};

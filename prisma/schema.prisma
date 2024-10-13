@@ -33,10 +33,3 @@ model RefreshToken {
   expiresAt DateTime
   user User @relation(fields: [userId], references: [id])
 }
-
-model BlackListedToken {
-  id String @id @default(uuid())
-  token String @unique
-  createdAt DateTime @default(now())
-  expiresAt DateTime
-}

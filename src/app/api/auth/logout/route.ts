@@ -1,37 +1,47 @@
-import { PrismaClient } from "@prisma/client";
-import { NextResponse } from "next/server";
-import { z } from "zod";
+import { NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
+import { verifyToken } from '@/app/utils/jwt';
+import cookie from 'cookie';
+import { cookies } from 'next/headers';
+
+
 const prisma = new PrismaClient();
 
-const tokenSchema = z.object({
-    refreshToken: z.string().min(1, "Refresh token is required")
-});
-
-export async function POST (request: Request) {
+export async function POST(request: Request) {
+    
     try {
-        const body = await request.json();
-        const parsed = tokenSchema.safeParse(body);
-        if (!parsed.success) {
-            return NextResponse.json({
-                error: "Invalid Token"
-            }, { status: 400 });
+        const cookies = request.headers.get('cookie');
+        if (!cookies) {
+            return NextResponse.json({ messgae: "No tokens found" }, { status: 400});
         }
-        const { refreshToken } = parsed.data;
-        const existingToken = await prisma.refreshToken.findUnique({
+        const { refreshToken } = cookie.parse(cookies);
+        if (!refreshToken) {
+            return NextResponse.json({ message: "No refresh token provided." }, { status: 400 });
+        }
+        // remove the refresh token from the DB;
+        await prisma.refreshToken.delete({
             where: { token: refreshToken },
         });
-
-        if (!existingToken) {
-            // Token doesn't exist, meaning it's invalid or an access token
-            return NextResponse.json({ error: "Invalid refresh token" }, { status: 400 });
-        }
-        await prisma.refreshToken.delete({
-            where: {
-                token: refreshToken
-            }
+        const clearAccessCookie = cookie.serialize('accessToken', '', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: new Date(0),
+            path: '/',
         });
-        return NextResponse.json({ message: 'Sign-out Successful'});
-    } catch (error) {
-        return NextResponse.json({ error: "Something went wrong" }, { status: 500 });
+        const clearRefreshCookie = cookie.serialize('refreshToken', '', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict',
+            expires: new Date(0),
+            path: '/',
+        });
+        const response = NextResponse.json({ message: 'Logged out successfully' });
+        response.headers.append('Set-Cookie', clearAccessCookie);
+        response.headers.append('Set-Cookie', clearRefreshCookie); 
+        return response;
+    } catch (error: any) {
+        console.error(error);
+        return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
     }
 }
