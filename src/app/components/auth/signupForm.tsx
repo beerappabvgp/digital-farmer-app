@@ -14,7 +14,7 @@ const SignupForm = () => {
     image: null,
   });
 
-  const dispatch = useAppDispatch();
+  const dispatch: any = useAppDispatch();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, files } = e.target;
