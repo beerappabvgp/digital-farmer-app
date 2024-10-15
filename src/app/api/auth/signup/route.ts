@@ -8,6 +8,7 @@ const userSchema = z.object({
   name: z.string().min(2, "Name must be atleast 2 characters long"),
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be atleast 6 characters long"),
+  image: z.string(),
 });
 
 export async function POST(request: Request) {
@@ -24,7 +25,7 @@ export async function POST(request: Request) {
       }
     );
   }
-  const { name, email, password } = parsed.data;
+  const { name, email, password, image } = parsed.data;
   // if validation is successful we will move towards creating the user
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
@@ -38,6 +39,7 @@ export async function POST(request: Request) {
       name: name,
       email,
       password: hashedPassword,
+      image,
     },
   });
   const { password: _, ...userDetails } = user;
