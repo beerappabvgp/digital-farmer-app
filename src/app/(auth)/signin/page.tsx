@@ -1,12 +1,12 @@
-'use client'
+"use client";
 
-import SignInForm from "@/app/components/auth/signinForm";
+import SignInForm from "@/components/auth/signinForm";
 
 export default function SignInPage() {
-    return (
-        <div>
-            <h1>SignIn</h1>
-            <SignInForm />
-        </div>
-    );
+  return (
+    <div>
+      <h1>SignIn</h1>
+      <SignInForm />
+    </div>
+  );
 }
