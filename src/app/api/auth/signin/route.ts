@@ -88,7 +88,8 @@ export async function POST(request: Request) {
             maxAge: 7 * 24 * 60 * 60,
             path: '/'
         });
-        const response = NextResponse.json({ message: "Login successful" });
+        const { password: _, ...userData } = user;
+        const response = NextResponse.json({ message: "Login successful", user: userData });
         response.headers.append('Set-Cookie', accessCookie);
         response.headers.append('Set-Cookie', refreshCookie);
         return response;

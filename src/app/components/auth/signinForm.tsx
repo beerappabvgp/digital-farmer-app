@@ -1,7 +1,7 @@
 'use client';
 
-import { useAppDispatch } from "@/lib/hooks";
-import { setAuthTokens } from "@/lib/slices/authSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/hooks";
+import { setAuthTokens, setUser } from "@/lib/slices/authSlice";
 import { useState } from "react";
 import axios from "axios";
 import { useRouter } from 'next/navigation';  // Correct for App Router
@@ -11,6 +11,9 @@ const SignInForm = () => {
         email: '',
         password: '',
     });
+    const accessToken = useAppSelector((state) => state.auth.accessToken);
+    const refreshToken = useAppSelector((state) => state.auth.refreshToken);
+    const user = useAppSelector((state) => state.auth.username);
     const router = useRouter();  // useRouter from next/navigation works for client components
     const dispatch = useAppDispatch();
 
@@ -35,11 +38,18 @@ const SignInForm = () => {
             });
 
             // Dispatch tokens after successful sign-in
-            dispatch(setAuthTokens({
-                accessToken: data.accessToken,
-                refreshToken: data.refreshToken, 
+            // dispatch(setAuthTokens({
+            //     accessToken: data.accessToken,
+            //     refreshToken: data.refreshToken, 
+            // }));
+            console.log("data" , data);
+            dispatch(setUser({
+                user: data.user.name,
+                imageUrl: data.user.image,
             }));
-
+            console.log("Access Token:", accessToken);
+            console.log("Refresh Token:", refreshToken);
+            console.log("User:", user);
             // Redirect to home page on success
             router.push('/');  // Works with the App Router
 

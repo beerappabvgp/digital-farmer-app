@@ -2,13 +2,15 @@ import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { stat } from "fs";
 
 interface AuthState {
-    user: any;
+    username: any;
     accessToken: string | null;
     refreshToken: string | null;
+    imageUrl: string | null;
 }
 
 const initialState: AuthState = {
-    user: null,
+    username: null,
+    imageUrl: null,
     accessToken: null,
     refreshToken: null,
 };
@@ -30,14 +32,18 @@ const authSlice = createSlice({
             state.accessToken = null;
             state.refreshToken = null;
         },
-        setUser: (state, action: PayloadAction<any>) => {
-            state.user = action.payload;
+        setUser: (state, action: PayloadAction<{ user:string, imageUrl: string | null}>) => {
+            console.log(action.payload);
+            state.username = action.payload.user;
+            state.imageUrl = action.payload.imageUrl;
         },
         clearUser: (state) => {
-            state.user = null;
+            state.username = null;
+            state.imageUrl = null;
         },
         logout: (state) => {
-            state.user = null;
+            state.username = null;
+            state.imageUrl = null;
             state.refreshToken = null;
             state.accessToken = null;
         },
