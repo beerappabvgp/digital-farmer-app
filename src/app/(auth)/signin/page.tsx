@@ -2,10 +2,10 @@
 
 import SignInForm from "@/components/auth/signinForm";
 
+
 export default function SignInPage() {
   return (
-    <div>
-      <h1>SignIn</h1>
+    <div className="max-h[100vh]">
       <SignInForm />
     </div>
   );

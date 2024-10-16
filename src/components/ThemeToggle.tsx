@@ -19,7 +19,7 @@ const ThemeToggle = () => {
     return (
         <div>
             <Switch checked={theme === 'dark'} onCheckedChange={handleToggle}/>
-            <span className="ml-2">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+            {/* <span className="ml-2">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span> */}
         </div>
     );
 }

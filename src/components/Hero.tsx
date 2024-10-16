@@ -2,12 +2,13 @@
 
 import { motion } from 'framer-motion';
 import Image from 'next/image'; // For optimized images
+import { clsx } from 'clsx';
 
 const Hero = () => {
     return (
         <section className="bg-cover bg-center h-screen flex flex-col items-center justify-center">
             {/* Farmer Image */}
-            <div className="relative w-full h-full">
+            {/* <div className="relative w-full h-full">
                 <Image 
                     src="/farmer.webp" 
                     alt="Farmer at work"
@@ -15,7 +16,7 @@ const Hero = () => {
                     objectFit="cover"
                     className="opacity-70" // Make it slightly transparent for text visibility
                 />
-            </div>
+            </div> */}
 
             {/* Headline and Pitch */}
             <div className="absolute flex flex-col items-center justify-center h-full text-center">

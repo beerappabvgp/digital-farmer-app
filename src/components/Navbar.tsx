@@ -11,23 +11,23 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <nav className="w-full shadow-md bg-white dark:bg-gray-800">
+    <nav className="w-full shadow-md shadow-gray-600">
       <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
         {/* Branding */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
-          className="text-2xl font-bold text-green-600 dark:text-green-400"
+          className="text-2xl font-bold"
         >
           <Link href="/">DigiFarmerApp</Link>
         </motion.div>
 
         {/* Right Side (Links & User Info) */}
-        <div className="flex items-center space-x-4">
+        <div className="flex justify-center items-center space-x-4">
           {state.username ? (
             <>
-              <p className="text-green-600 dark:text-white">{state.username}</p>
+              <p className="">Welcome, <span className='text-bold'> {(state.username as string).toUpperCase()}</span></p>
               <motion.img
                 initial={{ opacity: 0, scale: 0.8 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -41,10 +41,10 @@ const Navbar = () => {
             </>
           ) : (
             <>
-              <Link href="/signin" className="text-green-600 dark:text-green-400">
+              <Link href="/signin" className="">
                 Sign In
               </Link>
-              <Link href="/signup" className="text-green-600 dark:text-green-400">
+              <Link href="/signup" className="">
                 Sign Up
               </Link>
               <ThemeToggle />
