@@ -48,8 +48,12 @@ export async function POST(request: NextRequest) {
                 status: 401,
             });
         }
-        const newAccessToken = await generateAccessToken(userId);
-        const newRefreshToken = await generateRefreshToken(userId);
+        const payload = {
+            userId: storedRefreshToken.userId,
+            role: storedRefreshToken.user.role,
+        }
+        const newAccessToken = await generateAccessToken(payload);
+        const newRefreshToken = await generateRefreshToken(payload);
         const expirationDate = new Date();
         expirationDate.setDate(expirationDate.getDate() + 7);
         await prisma.refreshToken.update({

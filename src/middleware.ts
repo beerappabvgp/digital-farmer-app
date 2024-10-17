@@ -4,6 +4,7 @@ import cookie from "cookie";
 
 export async function middleware(request: NextRequest) {
     try {
+        console.log("entered middleware .... ");
         // Parse cookies from the request
         const cookies = request.headers.get('cookie');
         if (!cookies) {
@@ -21,9 +22,17 @@ export async function middleware(request: NextRequest) {
         }
 
         // Attach user ID to the headers so that downstream code can use it
-        request.headers.set("userId", decodedToken.userId as string);
-
-        return NextResponse.next();
+        // request.headers.set("userId", decodedToken.userId as string);
+        // request.headers.set("role", decodedToken.role as string);
+        // return NextResponse.next();
+        const response = NextResponse.next();
+        response.cookies.set('userId', decodedToken.userId as string, {
+            expires: 0,
+        });
+        response.cookies.set('role', decodedToken.role as string, {
+            expires: 0,
+        });
+        return response;
     } catch (error) {
         console.error("Authentication error:", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -31,5 +40,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/api/auth/logout'], // Apply middleware to these routes
+    matcher: ['/dashboard/:path*', '/api/auth/logout', '/api/products/:path*', '/api/products/:id*'], // Apply middleware to these routes
 };

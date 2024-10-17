@@ -1,5 +1,5 @@
 import { hashPassword } from "@/app/utils/hash";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Role } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 const prisma = new PrismaClient();
@@ -9,6 +9,7 @@ const userSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be atleast 6 characters long"),
   image: z.string(),
+  role: z.string(),
 });
 
 export async function POST(request: Request) {
@@ -25,7 +26,15 @@ export async function POST(request: Request) {
       }
     );
   }
-  const { name, email, password, image } = parsed.data;
+  let { name, email, password, image, role } = parsed.data;
+  let userRole: Role = Role.FARMER;
+  if (Role.FARMER === role) {
+    userRole = Role.FARMER;
+  } else if(Role.CONSUMER === role) {
+    userRole = Role.CONSUMER;
+  } else {
+    userRole = Role.STORAGE_PROVIDER;
+  }
   // if validation is successful we will move towards creating the user
   const existingUser = await prisma.user.findUnique({ where: { email } });
   if (existingUser) {
@@ -40,6 +49,7 @@ export async function POST(request: Request) {
       email,
       password: hashedPassword,
       image,
+      role: userRole,
     },
   });
   const { password: _, ...userDetails } = user;

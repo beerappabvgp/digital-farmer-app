@@ -20,9 +20,11 @@ model User {
   email String? @unique
   image String?
   password String
+  role Role @default(CONSUMER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   RefreshToken RefreshToken[]
+  products Product[]
 }
 
 model RefreshToken {
@@ -33,3 +35,32 @@ model RefreshToken {
   expiresAt DateTime
   user User @relation(fields: [userId], references: [id])
 }
+
+
+model Product {
+  id String @id @default(uuid())
+  name String
+  description String
+  price Float
+  quantity Int
+  status ProductStatus @default(AVAILABLE)
+  farmerId String
+  farmer User @relation(fields: [farmerId], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+
+enum Role {
+  FARMER
+  CONSUMER
+  STORAGE_PROVIDER
+}
+
+enum ProductStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+}
+
+

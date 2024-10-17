@@ -4,16 +4,22 @@ import { jwtVerify, SignJWT } from 'jose';
 const secretKey = new TextEncoder().encode(process.env.JWT_SECRET!);
 
 // Function to generate access token
-export const generateAccessToken = async (userId: string) => {
-    return new SignJWT({ userId })
+export const generateAccessToken = async (payload: {
+    userId: string , 
+    role: string
+}) => {
+    return new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' }) // Specify HS256 algorithm
         .setExpirationTime('15m')              // Set expiration time
         .sign(secretKey);                      // Sign the JWT
 };
 
 // Function to generate refresh token
-export const generateRefreshToken = async (userId: string) => {
-    return new SignJWT({ userId })
+export const generateRefreshToken = async (payload: {
+    userId: string , 
+    role: string
+}) => {
+    return new SignJWT(payload)
         .setProtectedHeader({ alg: 'HS256' }) // Specify HS256 algorithm
         .setExpirationTime('7d')              // Set expiration time
         .sign(secretKey);                      // Sign the JWT

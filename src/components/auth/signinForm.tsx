@@ -39,7 +39,7 @@ const SignInForm = () => {
         email: formData.email,
         password: formData.password,
       });
-
+      console.log("data - " , data)
       // Dispatch user details after successful sign-in
       dispatch(setUser({
         user: data.user.name,

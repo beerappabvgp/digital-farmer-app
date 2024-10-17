@@ -13,36 +13,45 @@ import { Label } from "@/components/ui/label"; // shadcn/ui Label
 import { Skeleton } from "@/components/ui/skeleton"; // Custom Spinner Component
 import { useRouter } from "next/navigation";
 
+enum Role {
+  FARMER = "FARMER",
+  CONSUMER = "CONSUMER",
+  STORAGE_PROVIDER = "STORAGE_PROVIDER",
+}
+
 const SignupForm = () => {
   const [formData, setFormData] = useState<{
     name: string;
     email: string;
     password: string;
     image: File | null;
+    role: Role;
   }>({
     name: "",
     email: "",
     password: "",
     image: null,
+    role: Role.CONSUMER,
   });
   const router = useRouter();
   const dispatch = useAppDispatch();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value, files } = e.target;
-    if (name === "image" && files) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target as HTMLInputElement | HTMLSelectElement;
+    if (name === "image" && e.target instanceof HTMLInputElement && e.target.files) {
       setFormData((prevData) => ({
         ...prevData,
-        image: files[0],
+        image: (e.target as unknown as HTMLInputElement).files![0],
       }));
     } else {
       setFormData((prevData) => ({
         ...prevData,
         [name]: value,
-      }));
+      }));  
     }
+    console.log(formData);
   };
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -59,6 +68,7 @@ const SignupForm = () => {
         );
         const snapshot = await uploadBytes(imageRef, formData.image);
         imageUrl = await getDownloadURL(snapshot.ref);
+        console.log(imageUrl);
       }
 
       const { data } = await axios.post("/api/auth/signup", {
@@ -66,6 +76,7 @@ const SignupForm = () => {
         email: formData.email,
         password: formData.password,
         image: imageUrl,
+        role: formData.role,
       });
 
       dispatch(
@@ -90,10 +101,10 @@ const SignupForm = () => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex justify-center items-center max-h-[100vh]  mt-[15px]"
+      className="flex justify-center items-center max-h-[100vh]"
     > 
       <div className="p-6 rounded-lg shadow-lg shadow-slate-400">
-        <h2 className="text-4xl font-bold mb-6 text-center">
+        <h2 className="text-4xl font-bold mb-4 text-center">
           Create an Account
         </h2>
         {error && (
@@ -103,12 +114,12 @@ const SignupForm = () => {
         )}
         <form
           onSubmit={handleSignup}
-          className="space-y-4 max-h-[calc(100vh-50px)]"
+          className="space-y-2 max-h-[calc(100vh-50px)]"
         >
           <div>
             <Label
               htmlFor="name"
-              className="block text-2xl"
+              className="block text-xl"
             >
               Username
             </Label>
@@ -120,13 +131,13 @@ const SignupForm = () => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="mt-2 block text-xl"
+              className="mt-2 block text-lg"
             />
           </div>
           <div>
             <Label
               htmlFor="email"
-              className="block text-2xl"
+              className="block text-xl"
             >
               Email
             </Label>
@@ -138,13 +149,13 @@ const SignupForm = () => {
               value={formData.email}
               onChange={handleChange}
               required
-              className="mt-2 block text-xl"
+              className="mt-2 block text-lg"
             />
           </div>
           <div>
             <Label
               htmlFor="password"
-              className="block text-2xl"
+              className="block text-xl"
             >
               Password
             </Label>
@@ -156,13 +167,13 @@ const SignupForm = () => {
               value={formData.password}
               onChange={handleChange}
               required
-              className="mt-1 block text-xl"
+              className="mt-1 block text-lg"
             />
           </div>
           <div>
             <Label
               htmlFor="image"
-              className="block text-2xl"
+              className="block text-xl"
             >
               Profile Image
             </Label>
@@ -172,13 +183,31 @@ const SignupForm = () => {
               type="file"
               accept="image/*"
               onChange={handleChange}
-              className="mt-2 block text-xl"
+              className="mt-2 block text-lg"
             />
+          </div>
+          <div className="">
+            <Label htmlFor="role" className="block text-xl">
+              Role
+            </Label>
+            <select
+              id="role"
+              name="role"
+              value={formData.role}
+              onChange={handleChange}
+              className="mt-2 block text-lg w-full bg-white dark:bg-black"
+              defaultValue={Role.CONSUMER}
+              required
+            >
+              <option value={Role.FARMER}>Farmer</option>
+              <option value={Role.CONSUMER}>Consumer</option>
+              <option value={Role.STORAGE_PROVIDER}>Storage Provider</option>
+            </select>
           </div>
           <Button
             type="submit"
             disabled={loading}
-            className="flex justify-center items-center text-2xl w-full"
+            className="flex justify-center items-center text-xl w-full"
           >
             {loading ? (
               <>

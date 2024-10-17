@@ -42,56 +42,57 @@ export async function POST(request: Request) {
         }
 
         // generate JWT tokens
-        const accessToken = await generateAccessToken(user.id);
-        const refreshToken = await generateRefreshToken(user.id);
-
-        // Check if the refresh token for this user already exists
-        const existingToken = await prisma.refreshToken.findUnique({
-            where: {
-                userId: user.id,
-            },
-        });
-
-        if (existingToken) {
-            // Update the existing refresh token
-            await prisma.refreshToken.update({
-                where: { userId: user.id },
-                data: {
-                    token: refreshToken,
-                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days expiry
-                },
-            });
-        } else {
-            // Create a new refresh token
-            await prisma.refreshToken.create({
-                data: {
-                    userId: user.id,
-                    token: refreshToken,
-                    expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-                },
-            });
+        const payload = {
+            userId: user.id,
+            role: user.role,
         }
+        const newAccessToken = await generateAccessToken(payload);
+        // const newRefreshToken = await generateRefreshToken(payload);
+
+        // // Check if the refresh token for this user already exists
+        // const existingToken = await prisma.refreshToken.findUnique({
+        //     where: {
+        //         userId: user.id,
+        //     },
+        // });
+
+        // if (existingToken) {
+        //     await prisma.refreshToken.delete({
+        //         where: { id: existingToken.id },
+        //     });
+        // } 
+        // Create a new refresh token
+        // await prisma.refreshToken.create({
+        //     data: {
+        //         userId: user.id,
+        //         token: newAccessToken,
+        //         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+        //     },
+        // // });
+        // console.log(user.id);
+        // console.log("refresh token created.....");
+        
 
         // return the JWT tokens
         // return NextResponse.json({ accessToken, refreshToken, message: "Login Successful" });
-        const accessCookie = cookie.serialize('accessToken', accessToken, {
+        const accessCookie = cookie.serialize('accessToken', newAccessToken, {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             sameSite: 'strict',
             maxAge: 15 * 60,
             path: '/',
         });
-        const refreshCookie = cookie.serialize('refreshToken', refreshToken, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production',
-            sameSite: 'strict',
-            maxAge: 7 * 24 * 60 * 60,
-            path: '/'
-        });
+        // const refreshCookie = cookie.serialize('refreshToken', newRefreshToken, {
+        //     httpOnly: true,
+        //     secure: process.env.NODE_ENV === 'production',
+        //     sameSite: 'strict',
+        //     maxAge: 7 * 24 * 60 * 60,
+        //     path: '/'
+        // });
         const { password: _, ...userData } = user;
         const response = NextResponse.json({ message: "Login successful", user: userData });
         response.headers.append('Set-Cookie', accessCookie);
-        response.headers.append('Set-Cookie', refreshCookie);
+        // response.headers.append('Set-Cookie', refreshCookie);
         return response;
     } catch (error) {
         console.error(error);
