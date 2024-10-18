@@ -3,8 +3,12 @@
 import { motion } from 'framer-motion';
 import Image from 'next/image'; // For optimized images
 import { clsx } from 'clsx';
+import { useAppSelector } from '@/lib/hooks';
+import { useRouter } from 'next/navigation';
 
 const Hero = () => {
+    const state = useAppSelector((state) => state.auth);
+    const router = useRouter();
     return (
         <section className="bg-cover bg-center h-screen flex flex-col items-center justify-center">
             {/* Farmer Image */}
@@ -41,8 +45,9 @@ const Hero = () => {
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.5, duration: 0.6 }}
                     className="mt-6 bg-green-700 hover:bg-green-800 py-3 px-8 rounded-full shadow-lg"
+                    onClick={() => state.role === 'FARMER' ? (router.push('/product/add')): (router.push('/'))}
                 >
-                    Join Us Now
+                    { state.role === 'FARMER' ? 'Add Product' : 'Join us now' } 
                 </motion.button>
             </div>
         </section>

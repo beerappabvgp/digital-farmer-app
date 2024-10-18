@@ -101,9 +101,9 @@ const SignupForm = () => {
       initial={{ opacity: 0, y: -50 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex justify-center items-center max-h-[100vh]"
+      className="flex justify-center items-center  max-h-[100vh] mt-16"
     > 
-      <div className="p-6 rounded-lg shadow-lg shadow-slate-400">
+      <div className="p-6 rounded-lg shadow-lg shadow-slate-400 w-2/5">
         <h2 className="text-4xl font-bold mb-4 text-center">
           Create an Account
         </h2>
@@ -114,7 +114,7 @@ const SignupForm = () => {
         )}
         <form
           onSubmit={handleSignup}
-          className="space-y-2 max-h-[calc(100vh-50px)]"
+          className="space-y-4 max-h-[calc(100vh-50px)]"
         >
           <div>
             <Label

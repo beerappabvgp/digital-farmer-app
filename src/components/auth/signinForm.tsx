@@ -42,8 +42,10 @@ const SignInForm = () => {
       console.log("data - " , data)
       // Dispatch user details after successful sign-in
       dispatch(setUser({
+        id: data.user.id,
         user: data.user.name,
         imageUrl: data.user.image,
+        role: data.user.role,
       }));
 
       // Redirect to home page
@@ -63,7 +65,7 @@ const SignInForm = () => {
       transition={{ duration: 0.5 }}
       className="flex justify-center items-center"
     >
-      <div className="p-8 rounded-lg max-w-md w-full shadow-lg shadow-gray-400 mt-[50px]">
+      <div className="p-8 rounded-lg max-w-md w-full shadow-lg shadow-gray-400 mt-[150px]">
         <h2 className="text-3xl font-bold mb-6 text-center">
           Sign In
         </h2>

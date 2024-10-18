@@ -29,6 +29,7 @@ export async function middleware(request: NextRequest) {
         response.cookies.set('userId', decodedToken.userId as string, {
             expires: 0,
         });
+        console.log(decodedToken.role);
         response.cookies.set('role', decodedToken.role as string, {
             expires: 0,
         });
@@ -40,5 +41,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/dashboard/:path*', '/api/auth/logout', '/api/products/:path*', '/api/products/:id*'], // Apply middleware to these routes
+    matcher: ['/dashboard/:path*', '/api/auth/logout', '/api/products/:path*', '/api/products/:id*', '/api/users/products/:path*'], // Apply middleware to these routes
 };

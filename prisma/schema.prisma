@@ -43,6 +43,7 @@ model Product {
   description String
   price Float
   quantity Int
+  images String[]
   status ProductStatus @default(AVAILABLE)
   farmerId String
   farmer User @relation(fields: [farmerId], references: [id])

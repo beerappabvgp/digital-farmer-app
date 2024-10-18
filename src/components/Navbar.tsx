@@ -6,6 +6,7 @@ import Link from 'next/link';
 import Signout from './auth/signout';
 import ThemeToggle from './ThemeToggle';
 
+
 const Navbar = () => {
   const state = useAppSelector((state) => state.auth);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -36,6 +37,7 @@ const Navbar = () => {
                 alt="User Profile"
                 className="w-10 h-10 rounded-full"
               />
+              <Link href={`/user/dashboard`} className='p-4 shadow-sm shadow-gray-200 rounded-lg'>Dashboard</Link>
               <Signout />
               <ThemeToggle />
             </>
