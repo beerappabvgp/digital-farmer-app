@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import cookie from "cookie";
-import { prisma } from "../../../../lib/getPrisma";
+import { prisma } from "../../../../../lib/getPrisma";
 import { parseCookies } from "@/app/utils/parseCookies";
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest,  { params }: { params: { id: string }}) {
   try {
     const cookies = request.headers.get('Set-Cookie');
-    const { userId, role } = parseCookies(cookies!);
+    const { userId } = cookie.parse(cookies || '');
     const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      }
+        where: {
+            id: userId,
+        }
     });
-    if (!userId || user!.role !== "FARMER") {
+    console.log("user - ", user?.id);
+    if (!params.id || user!.role !== "FARMER") {
       return NextResponse.json(
         {
           message: "Unauthorized",
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     }
     const products = await prisma.product.findMany({
       where: {
-        farmerId: userId,
+        farmerId: params.id,
       },
     });
 

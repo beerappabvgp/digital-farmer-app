@@ -1,26 +1,45 @@
 'use client';
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ImageUploader from "./ImageUploader";
-import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button"; // Shadcn Button
-import { Input } from "@/components/ui/input";   // Shadcn Input
-import { Textarea } from "@/components/ui/textarea";  // Shadcn Textarea
-import { Label } from "@/components/ui/label";  // Shadcn Label
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
-import axios from "axios";
 
-const ProductForm = () => {
+interface ProductFormProps {
+  initialData: {
+    name: string;
+    description: string;
+    price: number;
+    quantity: number;
+    images: string[];
+  };
+  onSubmit: (data: any) => Promise<void>;  // Accepts form data and returns a Promise
+  isLoading: boolean;
+  submitButtonText: string;
+  is_update: boolean;
+  initialImages: string[];
+}
+
+const ProductForm: React.FC<ProductFormProps> = ({ initialData, onSubmit, isLoading, submitButtonText, is_update, initialImages=[] }) => {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     price: 0,
     quantity: 1,
-    images: [] as string[],  // For storing image URLs
+    images: [] as string[],
   });
-  const [loading, setLoading] = useState(false);
+
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
+
+  // Pre-fill form if initialData is provided (for editing)
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    }
+  }, [initialData]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -32,21 +51,13 @@ const ProductForm = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    console.log("submit handler enters")
     e.preventDefault();
-    setLoading(true);
     setError(null);
 
     try {
-      console.log("entered ...")
-      await axios.post("/api/products", formData);  // Send product data to API
-      console.log("product created")
-      router.push("/product");  // Redirect after successful submission
+      await onSubmit(formData);  // Pass the form data to the onSubmit handler from the parent
     } catch (err) {
-      console.error(err);
-      setError("Failed to add product.");
-    } finally {
-      setLoading(false);
+      setError("Failed to submit form.");
     }
   };
 
@@ -65,7 +76,7 @@ const ProductForm = () => {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="description" className="text-xl font-medium ">Product Description</Label>
+          <Label htmlFor="description" className="text-xl font-medium">Product Description</Label>
           <Textarea id="description" name="description" placeholder="Enter product description" value={formData.description} onChange={handleChange} required className="focus:ring-blue-500 focus:border-blue-500 border-gray-300 rounded-md text-lg" />
         </div>
 
@@ -83,11 +94,11 @@ const ProductForm = () => {
 
         <div className="space-y-2">
           <Label htmlFor="images" className="font-medium text-xl">Upload Images</Label>
-          <ImageUploader onImagesChange={handleImagesChange} />
+          <ImageUploader onImagesChange={handleImagesChange} is_update={is_update} initialImages={initialImages}/>
         </div>
 
-        <Button type="submit" className="text-xl w-full  hover:bg-gray-300  font-semibold py-2 rounded-md transition" disabled={loading}>
-          {loading ? "Adding Product..." : "Add Product"}
+        <Button type="submit" className="text-xl w-full" disabled={isLoading}>
+          {isLoading ? "Processing..." : submitButtonText}
         </Button>
       </form>
     </motion.div>

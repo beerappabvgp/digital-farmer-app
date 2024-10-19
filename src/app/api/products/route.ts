@@ -5,9 +5,13 @@ import cookie from 'cookie';
 export async function POST(request: Request) {
     try {
         const cookies = request.headers.get('Set-Cookie');
-        console.log(cookies);
-        const { userId, role } = cookie.parse(cookies || '');
-        console.log(userId, role);
+        const { userId } = cookie.parse(cookies || '');
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        });
+        let role = user?.role;
         if (!userId || role === 'FARMER') {
             return NextResponse.json({
                 message: 'Unauthorized',
@@ -48,7 +52,7 @@ export async function GET(request: Request) {
                 createdAt: true,
             },
             orderBy: {
-                createdAt: 'desc', // Order by latest created
+                createdAt: 'desc',
             },
         });
 

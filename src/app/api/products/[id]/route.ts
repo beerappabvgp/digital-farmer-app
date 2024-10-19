@@ -3,15 +3,23 @@ import { NextResponse } from "next/server";
 import cookie from "cookie"
 export async function PUT(request: Request, { params }: { params: { id: string }}) {
     try {
-        const cookies = request.headers.get('cookie');
-        const { userId, role } = cookie.parse(cookies || '');
+        const cookies = request.headers.get('Set-Cookie');
+        const { userId } = cookie.parse(cookies || '');
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        });
+        let role = user?.role;
         console.log(userId, role);
         if (!userId || role !== "FARMER") {
             return NextResponse.json({
                 message: 'Unauthorized'
             } , { status: 401 });
         }
-        const { name, description, price, quantity, status } = await request.json();
+        let { name, description, price, quantity, status, images } = await request.json();
+        price = parseFloat(price);
+        quantity = parseInt(quantity);
         const updateProduct = await prisma.product.update({
             where: {
                 id: params.id,
@@ -23,6 +31,7 @@ export async function PUT(request: Request, { params }: { params: { id: string }
                 price,
                 quantity,
                 status,
+                images,
             }
         });
         return NextResponse.json(updateProduct, { status: 200 });
@@ -34,8 +43,14 @@ export async function PUT(request: Request, { params }: { params: { id: string }
 
 export async function DELETE(request: Request, { params }: { params: { id: string }}) {
     try {
-        const cookies = request.headers.get('cookie');;
-        const { userId, role } = cookie.parse(cookies || '');
+        const cookies = request.headers.get('Set-Cookie');
+        const { userId } = cookie.parse(cookies || '');
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        });
+        let role = user?.role;
         if (!userId || role !== "FARMER") {
             return NextResponse.json({
                 message: 'Unauthorized'
@@ -56,8 +71,14 @@ export async function DELETE(request: Request, { params }: { params: { id: strin
 
 export async function GET(request: Request, { params }: { params: { id: string }}) {
     try {
-        const cookies = request.headers.get('cookie');
-        const { userId, role } = cookie.parse(cookies || '');
+        const cookies = request.headers.get('Set-Cookie');
+        const { userId } = cookie.parse(cookies || '');
+        const user = await prisma.user.findUnique({
+            where: {
+                id: userId,
+            }
+        });
+        let role = user?.role;
         if (!userId || role !== "FARMER") {
             return NextResponse.json({
                 message: 'Unauthorized'

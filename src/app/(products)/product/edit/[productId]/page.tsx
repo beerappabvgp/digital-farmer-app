@@ -1,36 +1,71 @@
-// productForm.tsx
+"use client";
 
-import React from 'react';
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { useParams, useRouter } from "next/navigation";
+import ProductForm from "@/components/products/productForm";
 
+// Define a type for the product
 interface Product {
-  // Define the structure of your product here
-  id: string;
   name: string;
+  description: string;
   price: number;
-  // Add other fields as necessary
+  quantity: number;
+  images: string[];
 }
 
-interface ProductFormProps {
-  product: Product; // Use the Product type you defined
-  onSubmit: (updatedProduct: Product) => Promise<void>;
-  loading: boolean;
-}
+const UpdateProductPage = () => {
+  const [initialData, setInitialData] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  const { productId } = useParams();
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const { data } = await axios.get(`/api/products/${productId}`);
+        console.log("data - ", data);
+        setInitialData({
+          name: data.product.name,
+          description: data.product.description,
+          price: data.product.price,
+          quantity: data.product.quantity,
+          images: data.product.images,
+        });
+      } catch (err) {
+        console.error("Failed to fetch product data", err);
+      }
+    };
 
-export const ProductForm: React.FC<ProductFormProps> = ({ product, onSubmit, loading }) => {
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    // Collect form data and call onSubmit with it
-    const updatedProduct = { ...product }; // Modify as needed
-    await onSubmit(updatedProduct);
+    fetchProduct();
+  }, [productId]);
+
+  const handleUpdate = async (updatedData: Product) => {
+    setIsLoading(true);
+    try {
+      await axios.put(`/api/products/${productId}`, updatedData); 
+      console.log("succesfully updated ... ");
+      router.push("/user/dashboard");  // Redirect after successful update
+    } catch (err) {
+      console.error("Failed to update product", err);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
+  if (!initialData) {
+    return <p>Loading...</p>;  // Show a loading state while fetching data
+  }
+
   return (
-    <form onSubmit={handleSubmit}>
-      <input type="text" value={product.name} onChange={(e) => {/* handle change */}} />
-      <input type="number" value={product.price} onChange={(e) => {/* handle change */}} />
-      <button type="submit" disabled={loading}>
-        {loading ? 'Saving...' : 'Save'}
-      </button>
-    </form>
+    <ProductForm
+      initialData={initialData}
+      onSubmit={handleUpdate}
+      isLoading={isLoading}
+      submitButtonText="Update Product"
+      is_update={true}
+      initialImages={initialData.images}
+    />
   );
 };
+
+export default UpdateProductPage;

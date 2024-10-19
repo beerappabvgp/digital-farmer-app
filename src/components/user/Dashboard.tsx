@@ -12,7 +12,7 @@ export const DashBoard = () => {
   const [userDetails, setUserDetails] = useState<any | null>(null); // To store user details
   const { id, role } = useAppSelector((state) => state.auth);
   const router = useRouter();
-
+  const user = useAppSelector((state) => state.auth);
   // Fetch user details and products for the FARMER role
   useEffect(() => {
     if (role === "FARMER") {
@@ -29,7 +29,7 @@ export const DashBoard = () => {
       // Fetch user products
       const getProducts = async () => {
         try {
-          const { data } = await axios.get('/api/users/products');
+          const { data } = await axios.get(`/api/users/products/${user.id}`);
           setProducts(data.products);
         } catch (error) {
           console.error('Failed to fetch products:', error);
